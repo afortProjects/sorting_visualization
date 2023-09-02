@@ -1,0 +1,86 @@
+<button class="sorting-button" @onclick="RunQuickSort">Quick Sort</button>
+
+@code {
+    [Parameter] public List<SortableObject> List {get; set;} = new List<SortableObject>();
+    [Parameter] public int Delay {get; set; } = 0;
+    [Parameter, EditorRequired] public Action UpdateParent { get; set; }
+    [Parameter] public bool WasSortingLaunched {get; set;}
+    [Parameter] public EventCallback<bool> UpdateWasSortingToParent { get; set; }
+
+    public async void RunQuickSort() {
+        if(WasSortingLaunched) {
+            return;
+        }
+        WasSortingLaunched = true;
+        await UpdateWasSortingToParent.InvokeAsync(true);
+        
+        await SortArray(List, 0, List.Count - 1);
+
+        WasSortingLaunched = false;
+        await UpdateWasSortingToParent.InvokeAsync(false);
+    }   
+
+    public async Task SortArray(List<SortableObject> array, int leftIndex, int rightIndex) {
+        var i = leftIndex;
+        var j = rightIndex;
+
+        // Using middle element as pivot
+        var pivot = array[(leftIndex + rightIndex) / 2].Number; 
+
+        array[(leftIndex + rightIndex) /2].State = SortingState.Pivot;
+        UpdateParent();
+        
+        while (i <= j && WasSortingLaunched) {
+            while (array[i].Number < pivot && WasSortingLaunched) {
+                array[i].State = SortingState.Waiting;
+                i++;
+                array[i].State = SortingState.BeingSorted;
+                UpdateParent();
+            }
+
+            while (array[j].Number > pivot && WasSortingLaunched) {
+                array[j].State = SortingState.Waiting;
+                j--;
+                array[j].State = SortingState.BeingSorted;
+                UpdateParent();
+            }
+
+            array[i].State = SortingState.Waiting;
+            array[j].State = SortingState.Waiting;
+
+            if (i <= j && WasSortingLaunched) {
+                SortableObject temp = array[i];
+                array[i] = array[j];
+                array[j] = temp;
+
+                await Task.Delay(Delay);
+                i++;
+                j--;
+            }
+        }
+
+        if (!WasSortingLaunched) {
+            return;
+        }
+                                    
+        
+        if (leftIndex < j && WasSortingLaunched) {
+            await SortArray(array, leftIndex, j);
+        }
+
+        if (i < rightIndex && WasSortingLaunched) {
+            await SortArray(array, i, rightIndex);
+        }
+
+        if(!WasSortingLaunched) {
+            return;
+        }
+
+        // Set state for elements in their final sorted position
+        for (int k = leftIndex; k <= rightIndex; k++) {
+            array[k].State = SortingState.InGoodPlace;
+        }
+
+        UpdateParent();
+    }
+}

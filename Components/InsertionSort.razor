@@ -1,0 +1,56 @@
+<button class="sorting-button" @onclick="RunInsertionSort">Insertion Sort</button>
+
+@code {
+    [Parameter]    public List<SortableObject> List { get; set; } = new List<SortableObject>();
+    [Parameter]    public int Delay {get; set; } = 0;
+    [Parameter]    public Action UpdateParent { get; set; }
+    [Parameter]    public bool WasSortingLaunched {get; set;}
+    [Parameter]    public EventCallback<bool> UpdateWasSortingToParent { get; set; }   
+    public async Task RunInsertionSort() {
+        if (WasSortingLaunched) {
+            return;
+        }
+        
+        WasSortingLaunched = true;
+        await UpdateWasSortingToParent.InvokeAsync(true);
+
+        int n = List.Count;
+
+        for (int i = 1; i < n && WasSortingLaunched; i++) {
+            SortableObject key = List[i];
+            int j = i - 1;
+
+            key.State = SortingState.BeingSorted;
+            UpdateParent();
+            
+            while (j >= 0 && List[j].Number > key.Number && WasSortingLaunched) {
+                
+                // Shift elements greater than the key to the right
+                List[j + 1] = List[j];
+                j--;
+
+                List[j + 1].State = SortingState.BeingSorted;
+                UpdateParent();
+                List[j + 1].State = SortingState.Waiting;
+            }
+
+            // Place the key in the correct position
+            List[j + 1] = key;
+            key.State = SortingState.InTemporaryGoodPlace;
+            await Task.Delay(Delay);
+            UpdateParent();
+        }
+
+        if (!WasSortingLaunched) {
+            return;
+        }
+
+        for (int k = 0; k <= List.Count() - 1; k++) {
+            List[k].State = SortingState.InGoodPlace;
+        }
+        
+        WasSortingLaunched = false;
+        await UpdateWasSortingToParent.InvokeAsync(false);
+        UpdateParent();
+    }
+}

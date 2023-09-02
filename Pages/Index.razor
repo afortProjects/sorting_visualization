@@ -1,0 +1,88 @@
+﻿@page "/"
+@using Utilities
+@inject IJSRuntime JSRuntime
+
+<div class="sorting-buttons">
+    <BubbleSort List="List" WasSortingLaunched="@WasSortingLaunched" UpdateWasSortingToParent="UpdateWasSortingLaunched" UpdateParent="UpdateState" Delay="Delay" />
+    <QuickSort List="List" WasSortingLaunched="@WasSortingLaunched" UpdateWasSortingToParent="UpdateWasSortingLaunched" UpdateParent="UpdateState" Delay="Delay" />
+    <MergeSort List="List" WasSortingLaunched="@WasSortingLaunched" UpdateWasSortingToParent="UpdateWasSortingLaunched" UpdateParent="UpdateState" Delay="Delay" />
+    <InsertionSort List="List" WasSortingLaunched="@WasSortingLaunched" UpdateWasSortingToParent="UpdateWasSortingLaunched" UpdateParent="UpdateState" Delay="Delay" />
+    <SelectionSort List="List" WasSortingLaunched="@WasSortingLaunched" UpdateWasSortingToParent="UpdateWasSortingLaunched" UpdateParent="UpdateState" Delay="Delay" />
+    <ShellSort List="List" WasSortingLaunched="@WasSortingLaunched" UpdateWasSortingToParent="UpdateWasSortingLaunched" UpdateParent="UpdateState" Delay="Delay" />
+</div>
+
+<div class="rectangle-container">
+    <div class="wrapper">
+        @foreach (var sortable in List) 
+        {
+            <div class="rectangle" style="left:@(index*10)px; height:@(sortable.Number)px; background-color: @(EnumColorUtility.GetColor(sortable.State));"></div>
+            index++;
+        }
+    </div>
+</div>
+
+<div class="separator">
+    <span class="line"></span>
+    <span class="separator-text">SETTINGS</span>
+    <span class="line"></span>
+</div>
+
+<div class="slider-container">
+    <label class="slider-label">ELEMENTS:</label>
+    <input type="range" class="slider" min="10" max="100" step="1" @bind="AmountOfElementsInArrayHelper"/>
+    <span class="slider-value">@AmountOfElementsInArray</span>
+</div>
+
+<div class="slider-container">
+    <label class="slider-label">DELAY:</label>
+    <input type="range" class="slider" min="NumbersRange.Item1" max="@(NumbersRange.Value2/2)" @bind="@Delay" />
+    <span class="slider-value">@Delay</span>
+</div>
+
+<div class="settings-buttons">
+    <button class="settings-button" @onclick="UpdateAmountOfElementsInArray">RESET</button>        
+</div>
+
+@code {
+    public bool WasSortingLaunched {get; set;}
+
+    List<SortableObject> List = new List<SortableObject>();
+    private int Delay { get; set; } = 50;
+    private int AmountOfElementsInArray = 10;
+    private int AmountOfElementsInArrayHelper
+    {
+        get => AmountOfElementsInArray;
+        set {
+            if (AmountOfElementsInArray != value) {
+                AmountOfElementsInArray = value;
+                UpdateAmountOfElementsInArray();
+            }
+        }
+    }
+
+    
+    Utilities.Range NumbersRange = new Utilities.Range { Value1 = 1, Value2 = 100 };
+    int index = 0;
+
+    private void UpdateWasSortingLaunched(bool newValue) => WasSortingLaunched = newValue;
+
+    private void UpdateState() {
+        index = 0;
+        StateHasChanged();
+    }
+
+    private void UpdateAmountOfElementsInArray() {
+        WasSortingLaunched = false;
+        List.Clear();
+        RandomizeArrayUtility.Randomize(ref List, AmountOfElementsInArray, NumbersRange.toTuple());
+        StateHasChanged();
+    }
+
+    protected override async void OnInitialized() {
+        int windowHeight = await JSRuntime.InvokeAsync<int>("customFunctions.getWindowHeight");
+        NumbersRange.Value2 = windowHeight/2;
+        RandomizeArrayUtility.Randomize(ref List, AmountOfElementsInArray, NumbersRange.toTuple());
+        StateHasChanged();
+    }
+
+}

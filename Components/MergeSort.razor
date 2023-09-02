@@ -1,0 +1,113 @@
+<button class="sorting-button" @onclick="RunMergeSort">Merge Sort</button>
+
+@code {
+    [Parameter]    public List<SortableObject> List { get; set; } = new List<SortableObject>();
+    [Parameter]    public int Delay {get; set; } = 0;
+    [Parameter]    public Action UpdateParent { get; set; }
+    [Parameter]    public bool WasSortingLaunched {get; set;}
+    [Parameter]    public EventCallback<bool> UpdateWasSortingToParent { get; set; }   
+
+    public async void RunMergeSort() {
+        if (WasSortingLaunched) {
+            return;
+        }
+        WasSortingLaunched = true;
+        await UpdateWasSortingToParent.InvokeAsync(true);
+
+        await MergeSortHelper(List, 0, List.Count() - 1);
+
+        WasSortingLaunched = false;
+        await UpdateWasSortingToParent.InvokeAsync(false);
+    }
+
+    public async Task MergeSortHelper(List<SortableObject> list, int left, int right) {
+        if (left < right) {
+            int mid = left + (right - left) / 2;
+            
+            if(WasSortingLaunched) {
+                await MergeSortHelper(list, left, mid);
+            }
+
+            UpdateParent();
+            if(WasSortingLaunched) {
+                await MergeSortHelper(list, mid + 1, right);
+            }
+
+            UpdateParent();
+            if(WasSortingLaunched) {
+                await Merge(list, left, mid, right);
+            }
+        }
+    }
+
+    private async Task Merge(List<SortableObject> list, int left, int mid, int right) {
+        int n1 = mid - left + 1;
+        int n2 = right - mid;
+        int j = 0, k = 0, i=0;
+        List<SortableObject> leftArray = new List<SortableObject>(n1);
+        List<SortableObject> rightArray = new List<SortableObject>(n2);
+
+        if(!WasSortingLaunched) {
+            return;
+        }
+
+        for (i = 0; i < n1 && WasSortingLaunched; i++) {
+            leftArray.Add(list[left + i]);
+            list[left + i].State = SortingState.BeingSorted;
+        }
+
+        for (i = 0; i < n2 && WasSortingLaunched; i++) {
+            rightArray.Add(list[mid + 1 + i]);
+            list[mid + 1 + i].State = SortingState.BeingSorted;
+        }
+
+        j=0; 
+        k=0;
+        i=left;
+
+        while (j < n1 && k < n2 && WasSortingLaunched) {
+            if (leftArray[j].Number <= rightArray[k].Number) {
+                list[i] = leftArray[j];
+                j++;
+            }
+            else {
+                list[i] = rightArray[k];
+                k++;
+            }
+
+            i++;
+            await Task.Delay(Delay); 
+            UpdateParent();
+
+            foreach (var item in list) {
+                item.State = SortingState.Waiting;
+            }
+        }
+
+        while (j < n1 && WasSortingLaunched) {
+            list[i] = leftArray[j];
+            j++;
+            i++;
+        }
+
+        while (k < n2 && WasSortingLaunched) {
+            list[i] = rightArray[k];
+            k++;
+            i++;
+        }
+        
+        if(!WasSortingLaunched) {
+            return;
+        }
+
+        for (i = left; i <= right; i++) {
+            if(left==0 && right == List.Count()-1) {
+                list[i].State = SortingState.InGoodPlace;
+            } else {
+                list[i].State = SortingState.InTemporaryGoodPlace;
+            }
+        }
+        
+        UpdateParent();
+    }
+}

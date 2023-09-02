@@ -1,0 +1,59 @@
+<button class="sorting-button" @onclick="RunShellSort">Shell Sort</button>
+
+@code {
+    [Parameter]    public List<SortableObject> List { get; set; } = new List<SortableObject>();
+    [Parameter]    public int Delay {get; set; } = 0;
+    [Parameter]    public Action UpdateParent { get; set; }
+    [Parameter]    public bool WasSortingLaunched {get; set;}
+    [Parameter]    public EventCallback<bool> UpdateWasSortingToParent { get; set; }   
+    public async Task RunShellSort() {
+        if (WasSortingLaunched) {
+            return;
+        }
+
+        WasSortingLaunched = true;
+        await UpdateWasSortingToParent.InvokeAsync(true);
+
+        int n = List.Count;
+        int h = 1;
+
+        while ((h < n / 3) && WasSortingLaunched) {
+            h = 3 * h + 1;
+        }
+
+        while (h >= 1 && WasSortingLaunched) {
+            for (int i = h; i < n && WasSortingLaunched; i++) {
+                for (int j = i; j >= h && List[j].Number < List[j - h].Number && WasSortingLaunched; j -= h) {
+                    List[j].State = SortingState.BeingSorted;
+                    List[j - h].State = SortingState.BeingSorted;
+
+                    UpdateParent();
+
+                    await Task.Delay(Delay);
+
+                    List[j].State = SortingState.Waiting;
+                    List[j - h].State = SortingState.Waiting;
+                    UpdateParent();
+
+                    SortableObject temp = List[j];
+                    List[j] = List[j - h];
+                    List[j - h] = temp;
+                }
+            }
+
+            // Move to the next increment
+            h = h / 3;
+        }
+
+        if(!WasSortingLaunched) {
+            return;
+        }
+
+        for (int i = 0; i < n; i++) {
+            List[i].State = SortingState.InGoodPlace;
+        }
+        
+        WasSortingLaunched = false;
+        await UpdateWasSortingToParent.InvokeAsync(false);
+    }
+}

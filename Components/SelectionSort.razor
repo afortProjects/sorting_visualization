@@ -1,0 +1,55 @@
+<button class="sorting-button" @onclick="RunSelectionSort">Selection Sort</button>
+
+@code {
+    [Parameter]    public List<SortableObject> List { get; set; } = new List<SortableObject>();
+    [Parameter]    public int Delay {get; set; } = 0;
+    [Parameter]    public Action UpdateParent { get; set; }
+    [Parameter]    public bool WasSortingLaunched {get; set;}
+    [Parameter]    public EventCallback<bool> UpdateWasSortingToParent { get; set; }   
+    public async Task RunSelectionSort() {
+        if (WasSortingLaunched) {
+            return;
+        }
+        WasSortingLaunched = true;
+        await UpdateWasSortingToParent.InvokeAsync(true);
+
+        int n = List.Count;
+
+        for (int i = 0; i < n - 1 && WasSortingLaunched; i++) {
+            int minIndex = i;
+
+            List[i].State = SortingState.BeingSorted;
+            UpdateParent();
+            
+            for (int j = i + 1; j < n && WasSortingLaunched; j++) {      
+                List[j].State = SortingState.BeingSorted;
+                UpdateParent();
+
+                if (List[j].Number < List[minIndex].Number) {
+                    minIndex = j;
+                }
+
+                List[j].State = SortingState.Waiting;
+            }
+
+            SortableObject temp = List[i];
+            List[i] = List[minIndex];
+            List[minIndex] = temp;
+
+            List[i].State = SortingState.InGoodPlace;
+            await Task.Delay(Delay); 
+            UpdateParent();
+        }
+
+        if(!WasSortingLaunched) {
+            return;
+        }
+
+        List[n - 1].State = SortingState.InGoodPlace;
+        
+        WasSortingLaunched = false;
+        await UpdateWasSortingToParent.InvokeAsync(false);
+        UpdateParent();
+    
+    }
+}

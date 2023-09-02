@@ -1,0 +1,100 @@
+.rectangle-container {
+    height: 50vh;
+    width: 100%;
+    border: 1px solid #ccc;
+
+}
+
+.rectangle {
+    display: inline-block;
+    border: 1px solid blue;
+    width: 10px;
+}
+.wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    text-align:center;
+    width: 100%;
+    height: 100%;
+}
+
+.separator {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 20px 0;
+}
+
+.line {
+    flex-grow: 1;
+    height: 6px;
+    background-color: #424242;
+}
+
+.separator-text {
+    padding: 0 2px;
+    color: #333;
+    font-size: 14px;
+    font-weight: bold;
+    letter-spacing: 2px;
+}
+
+.slider-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.slider-label, .slider-value {
+    flex: 1;
+    margin-right: 10px;
+    color: #333;
+    font-size: 1.05rem;
+    letter-spacing: 1px;
+    font-weight: bold;
+}
+
+.slider {
+    flex: 3;
+    width: 100%;
+    background-color: #286cbb; 
+    appearance: none;
+    height: 6px;
+    border-radius: 5px;
+    outline: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease-in-out;
+}
+
+.slider::-webkit-slider-thumb:hover {
+    /* Darken color on thumb hover */
+    background-color: #163e6b; 
+}
+
+.slider-value {
+    flex: 1;
+    text-align: right;
+}
+
+.sorting-buttons {
+    margin: 0;
+    text-align: center;
+    padding-bottom: 1.1rem;
+}
+
+.settings-buttons {
+    margin: 0;
+    text-align: center;
+    padding-bottom: 1.1rem;
+}
+
+.settings-button {
+    background-color: #333;
+    padding: 0.4rem 1rem 0.4rem 1rem;
+    letter-spacing: 2px;
+}
+
+.settings-button:hover {
+    background-color: rgb(34, 34, 34);
+}
