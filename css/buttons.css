@@ -1,0 +1,17 @@
+.sorting-button, .settings-button {
+    background-color: #286cbb; /* Grey[800] equivalent color */
+    color: white;
+    border: none;
+    padding: 0.5rem;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    margin: 5px;
+    transition: background-color 0.3s ease-in-out;
+    letter-spacing: 1px;
+    text-align: center;
+}
+
+.sorting-button:hover, .settings-button:hover {
+    background-color: rgb(34, 34, 34);
+}
